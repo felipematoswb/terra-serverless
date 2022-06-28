@@ -1,0 +1,19 @@
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+	name           = "pets"
+	billing_mode   = "PAY_PER_REQUEST"
+	hash_key       = "id"
+	
+	attribute {
+			name = "id"
+			type = "N"
+	}
+
+	tags = {
+			Name        = "dynamodb-table-1"
+			Environment = "development"
+	}
+}
+
+resource "aws_dynamodb_contributor_insights" "dynanodb-insights" {
+  	table_name = aws_dynamodb_table.basic-dynamodb-table.name
+}
