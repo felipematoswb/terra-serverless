@@ -10,8 +10,7 @@ exports.handler = async (event, context) => {
     const headers = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Headers" : "Content-Type",
-        "Access-Control-Allow-Origin": "http://localhost:3000",
-        "Access-Control-Allow-Methods": "OPTIONS,PUT,GET,DELETE"
+        "Access-Control-Allow-Methods": "OPTIONS, PUT, GET, DELETE"
     };
 
     try {
@@ -32,7 +31,7 @@ exports.handler = async (event, context) => {
                 body = `Put pet id: ${requestJSON.id}, race: ${requestJSON.race}, age: ${requestJSON.age}`;
             break;
             default:
-            throw new Error(`Unsupported route: "${event.httpMethod + ' ' + event.resource}"`);
+            throw new Error('Unsupported route: "${event.httpMethod + " " + event.resource}"');
         }
     } catch (err) {
         statusCode = 400;

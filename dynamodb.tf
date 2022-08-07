@@ -5,7 +5,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 	
 	attribute {
 			name = "id"
-			type = "N"
+			type = "S"
 	}
 
 	tags = {

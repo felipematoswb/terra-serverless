@@ -10,12 +10,21 @@ resource "aws_api_gateway_resource" "api-resource-root-pets" {
     parent_id   = aws_api_gateway_rest_api.rest-api-example.root_resource_id
     path_part   = "pets"
     rest_api_id = aws_api_gateway_rest_api.rest-api-example.id
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example
+	]
 }
 
 resource "aws_api_gateway_resource" "api-resource-pets" {
     parent_id   = aws_api_gateway_resource.api-resource-root-pets.id
     path_part   = "{id}"
     rest_api_id = aws_api_gateway_rest_api.rest-api-example.id
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_resource.api-resource-root-pets
+	]
 }
 
 resource "aws_api_gateway_method" "method-get-for-root" {
@@ -23,6 +32,11 @@ resource "aws_api_gateway_method" "method-get-for-root" {
     http_method   = "GET"
     resource_id   = aws_api_gateway_resource.api-resource-root-pets.id
     rest_api_id   = aws_api_gateway_rest_api.rest-api-example.id
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_resource.api-resource-root-pets
+	]
 }
 
 resource "aws_api_gateway_method" "method-put-for-root" {
@@ -30,6 +44,11 @@ resource "aws_api_gateway_method" "method-put-for-root" {
     http_method   = "PUT"
     resource_id   = aws_api_gateway_resource.api-resource-root-pets.id
     rest_api_id   = aws_api_gateway_rest_api.rest-api-example.id
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_resource.api-resource-root-pets
+	]
 }
 
 resource "aws_api_gateway_method" "method-delete-for-pets-id" {
@@ -37,6 +56,11 @@ resource "aws_api_gateway_method" "method-delete-for-pets-id" {
     http_method   = "DELETE"
     resource_id   = aws_api_gateway_resource.api-resource-pets.id
     rest_api_id   = aws_api_gateway_rest_api.rest-api-example.id
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_resource.api-resource-pets
+	]
 }
 
 resource "aws_api_gateway_method" "method-get-for-pets-id" {
@@ -44,6 +68,11 @@ resource "aws_api_gateway_method" "method-get-for-pets-id" {
     http_method   = "GET"
     resource_id   = aws_api_gateway_resource.api-resource-pets.id
     rest_api_id   = aws_api_gateway_rest_api.rest-api-example.id
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_resource.api-resource-pets
+	]
 }
 
 resource "aws_api_gateway_integration" "integration-lambda-pets-get" {
@@ -54,6 +83,13 @@ resource "aws_api_gateway_integration" "integration-lambda-pets-get" {
     integration_http_method = "POST"
     uri                 = aws_lambda_function.crud_lambda.invoke_arn
     content_handling    = "CONVERT_TO_TEXT"
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_method.method-get-for-root,
+        aws_api_gateway_resource.api-resource-root-pets,
+        aws_lambda_function.crud_lambda
+	]
 }
 
 resource "aws_api_gateway_integration" "integration-lambda-pets-put" {
@@ -64,6 +100,13 @@ resource "aws_api_gateway_integration" "integration-lambda-pets-put" {
     integration_http_method = "POST"
     uri                 = aws_lambda_function.crud_lambda.invoke_arn
     content_handling    = "CONVERT_TO_TEXT"
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_method.method-put-for-root,
+        aws_api_gateway_resource.api-resource-root-pets,
+        aws_lambda_function.crud_lambda
+	]
 }
 
 resource "aws_api_gateway_integration" "integration-lambda-pets-id-delete" {
@@ -74,6 +117,13 @@ resource "aws_api_gateway_integration" "integration-lambda-pets-id-delete" {
     integration_http_method = "POST"
     uri                 = aws_lambda_function.crud_lambda.invoke_arn
     content_handling    = "CONVERT_TO_TEXT"
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_method.method-delete-for-pets-id,
+        aws_api_gateway_resource.api-resource-pets,
+        aws_lambda_function.crud_lambda
+	]
 }
 
 resource "aws_api_gateway_integration" "integration-lambda-pets-id-get" {
@@ -84,6 +134,13 @@ resource "aws_api_gateway_integration" "integration-lambda-pets-id-get" {
     integration_http_method = "POST"
     uri                 = aws_lambda_function.crud_lambda.invoke_arn
     content_handling    = "CONVERT_TO_TEXT"
+
+    depends_on = [
+	  	aws_api_gateway_rest_api.rest-api-example,
+        aws_api_gateway_method.method-delete-for-pets-id,
+        aws_api_gateway_resource.api-resource-pets,
+        aws_lambda_function.crud_lambda
+	]
 }
 
 resource "aws_api_gateway_deployment" "deployment-dev" {
@@ -100,6 +157,7 @@ resource "aws_api_gateway_deployment" "deployment-dev" {
 
 	depends_on = [
 	  	aws_api_gateway_method.method-put-for-root,
+        aws_api_gateway_rest_api.rest-api-example
 	]
 }
 
@@ -114,7 +172,9 @@ resource "aws_api_gateway_stage" "pets-stage-dev" {
 	}
 
 	depends_on = [
-	  aws_cloudwatch_log_group.apigateway-pets-customlogs
+	    aws_cloudwatch_log_group.apigateway-pets-customlogs,
+        aws_api_gateway_deployment.deployment-dev,
+        aws_api_gateway_rest_api.rest-api-example
 	]
 }
 
@@ -140,3 +200,10 @@ resource "aws_api_gateway_method_settings" "pet-settings-stage-dev" {
 	]
 }
 
+resource "aws_lambda_permission" "lambda_permission" {
+    statement_id  = "AllowAPIInvoke"
+    action        = "lambda:InvokeFunction"
+    function_name = aws_lambda_function.crud_lambda.arn
+    principal     = "apigateway.amazonaws.com"
+    source_arn = "${aws_api_gateway_rest_api.rest-api-example.execution_arn}/*/*/*"
+}
