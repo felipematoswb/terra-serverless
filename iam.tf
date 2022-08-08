@@ -84,19 +84,40 @@ resource "aws_iam_policy" "lambda-policy-for-access-dynamo-and-cloudwatch" {
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents",
+            ]
+            Effect   = "Allow"
+            Resource = [
+                "arn:aws:logs:*:*:*",
+            ]
+        },
+        {
+            Effect = "Allow",
+            Action = [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+                "xray:GetSamplingRules",
+                "xray:GetSamplingTargets",
+                "xray:GetSamplingStatisticSummaries"
+            ],
+            Resource = [
+                "*"
+            ]
+        },
+        {
+            Action = [
                 "dynamodb:BatchGetItem",
                 "dynamodb:GetItem",
                 "dynamodb:Query",
                 "dynamodb:Scan",
                 "dynamodb:BatchWriteItem",
                 "dynamodb:PutItem",
-                "dynamodb:UpdateItem"
+                "dynamodb:UpdateItem",
             ]
             Effect   = "Allow"
-            Resource = ["arn:aws:logs:*:*:*",
-                        "${aws_dynamodb_table.basic-dynamodb-table.arn}"
+            Resource = [
+                "${aws_dynamodb_table.basic-dynamodb-table.arn}"
             ]
-        },
+        }
         ]
     })
     tags = {
